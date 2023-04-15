@@ -96,14 +96,12 @@ void process_packet(u_char *args, const struct pcap_pkthdr *header, const u_char
             switch (ip_header->ip_p) {
                 case IPPROTO_TCP: {
                     struct tcphdr *tcp_header = (struct tcphdr *) (payload + (ip_header->ip_hl * 4));
-                    printf("TCP packet\n");
                     printf("src port: %d\n", ntohs(tcp_header->th_sport));
                     printf("dst port: %d\n", ntohs(tcp_header->th_dport));
                     break;
                 }
                 case IPPROTO_UDP: {
                     struct udphdr *udp_header = (struct udphdr *) (payload + (ip_header->ip_hl * 4));
-                    printf("UDP packet\n");
                     printf("src port: %d\n", ntohs(udp_header->uh_sport));
                     printf("dst port: %d\n", ntohs(udp_header->uh_dport));
                     break;
@@ -152,7 +150,7 @@ int main() {
     pcap_t *handler;
 
 
-    handler = pcap_open_live("wlp2s0", BUFSIZ, 1, 1000, err);
+    handler = pcap_open_live("wlp2s0", BUFSIZ, 1, -1, err);
 
     //TODO: Error handling and SIGINT handler
     pcap_compile(handler, &fp, filter_exp, 0, net);
