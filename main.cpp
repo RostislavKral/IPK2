@@ -8,6 +8,17 @@ void process_packet(u_char *args, const struct pcap_pkthdr *header, const u_char
 {
 
     //TODO: catch packet and print it
+    int packet_type = ((int) (packet[12]) << 8) | (int) packet[13];
+
+    // std::cout << packet_type << std::endl;
+
+    char source_ip[256];
+    char destination_ip[256];
+    u_char * packethdr = const_cast<u_char *>(packet);
+
+    struct ip* iphdr;
+
+    printf("%d\n", packet_type);
 
 }
 
