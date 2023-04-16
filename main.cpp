@@ -209,7 +209,7 @@ int main(int argc, char *argv[]) {
                                        {"port",      required_argument, nullptr, 'p'},
                                        {nullptr,     0,                 nullptr, 0}};
 
-        while ((opt = getopt_long(argc, argv, "i:p:tn:a46gum", long_options, nullptr)) != -1) {
+        while ((opt = getopt_long(argc, argv, "i:p:tun:", long_options, nullptr)) != -1) {
             switch (opt) {
                 case 'i':
                     interface = optarg;
