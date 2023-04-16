@@ -7,6 +7,10 @@
 #include <net/ethernet.h>
 #include <netinet/ip.h>
 #include <netinet/ip6.h>
+#include <netinet/in.h>
+#include <net/if_arp.h>
+#include <netinet/in_systm.h>
+#include <netinet/if_ether.h>
 #include <time.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -119,11 +123,40 @@ void process_packet(u_char *args, const struct pcap_pkthdr *header, const u_char
             inet_ntop(AF_INET6, &ip6_header->ip6_dst, dst_ip, INET6_ADDRSTRLEN);
             printf("src IP: %s\n", src_ip);
             printf("dst IP: %s\n", dst_ip);
+
+            switch (ip6_header->ip6_nxt) {
+                case IPPROTO_TCP: {
+                    struct tcphdr *tcp_header = (struct tcphdr *) (payload + sizeof(struct ip6_hdr));
+
+                    printf("src port: %d\n", ntohs(tcp_header->th_sport));
+                    printf("dst port: %d\n", ntohs(tcp_header->th_dport));
+                    break;
+                }
+                case IPPROTO_UDP: {
+                    struct udphdr *udp_header = (struct udphdr *) (payload + sizeof(struct ip6_hdr));
+                    printf("src port: %d\n", ntohs(udp_header->uh_sport));
+                    printf("dst port: %d\n", ntohs(udp_header->uh_dport));
+                    break;
+                }
+                default: {
+                    //TODO: I guess nothing should be done in this case
+                    break;
+                }
+            }
             break;
         }
 
         case ETHERTYPE_ARP: {
-            //TODO: Need to get ARP IP info
+            struct ether_arp* arpPacket = (struct ether_arp*) (payload);
+            struct in_addr src_addr = *(struct in_addr *)arpPacket->arp_spa;
+            struct in_addr dst_addr = *(struct in_addr *)arpPacket->arp_tpa;
+
+            char src_ip[INET_ADDRSTRLEN];
+            char dst_ip[INET_ADDRSTRLEN];
+            inet_ntop(AF_INET, &src_addr, src_ip, INET_ADDRSTRLEN);
+            inet_ntop(AF_INET, &dst_addr, dst_ip, INET_ADDRSTRLEN);
+            printf("src IP: %s\n", src_ip);
+            printf("dst IP: %s\n", dst_ip);
             break;
         }
     }
@@ -164,7 +197,7 @@ int main(int argc, char *argv[]) {
     bpf_u_int32 source_ip, netmask;
     char errbuff[PCAP_ERRBUF_SIZE];
     pcap_t *handler;
-    // char* interface = nullptr;
+
     bool tcp = false;
     bool udp = false;
     bool arp = false;
@@ -172,6 +205,7 @@ int main(int argc, char *argv[]) {
     bool icmp6 = false;
     bool igmp = false;
     bool mld = false;
+    bool ndp = false;
     int n = -1;
     int port = 0;
     int opt;
@@ -206,6 +240,7 @@ int main(int argc, char *argv[]) {
                                        {"icmp6",     no_argument,       nullptr, '6'},
                                        {"igmp",      no_argument,       nullptr, 'g'},
                                        {"mld",       no_argument,       nullptr, 'm'},
+                                       {"ndp",       no_argument,       nullptr, 'd'},
                                        {"port",      required_argument, nullptr, 'p'},
                                        {nullptr,     0,                 nullptr, 0}};
 
@@ -240,6 +275,9 @@ int main(int argc, char *argv[]) {
                     break;
                 case 'm':
                     mld = true;
+                    break;
+                case 'd':
+                    ndp = true;
                     break;
                 default:
                     usage();
@@ -306,15 +344,23 @@ int main(int argc, char *argv[]) {
         filter = filter.substr(0, filter.length() - 4); // Deleting or a on the end of string
     }
 
-    std::cout << filter;
-
-    //return 0;
     handler = pcap_open_live(interface, BUFSIZ, 0, 1000, err);
-    //TODO: Error handling and SIGINT handler
-    pcap_compile(handler, &fp, filter.c_str(), 0, net);
 
-    pcap_lookupnet(interface, &source_ip, &netmask, errbuff);
+    if(handler == NULL){
+        std::cout << errbuff;
+        return -1;
+    }
 
+    if(pcap_compile(handler, &fp, filter.c_str(), 0, net) == -1)
+    {
+        std::cout << errbuff;
+        return -1;
+    }
+
+    if(pcap_lookupnet(interface, &source_ip, &netmask, errbuff) == -1) {
+        std::cout << errbuff;
+        return -1;
+    }
     pcap_setfilter(handler, &fp);
 
     pcap_loop(handler, n, process_packet, nullptr);
