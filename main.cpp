@@ -56,7 +56,6 @@ void print_packet_data(const u_char *packet, int length) {
 
 void process_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet) {
 
-    //TODO: catch packet and print it
 
     //Getting timestamp from packet header
     char timestamp_str[30];
