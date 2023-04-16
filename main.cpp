@@ -257,19 +257,67 @@ int main(int argc, char *argv[]) {
             return -1;
         }
 
-        return 0;
+    }
+
+    if(tcp) {
+        if (port > 0)
+        {
+            filter += "(tcp port " + std::to_string(port) + ") or ";
+        } else {
+            filter += "tcp or ";
+        }
+    }
+
+    if(arp) {
+        filter += "arp or ";
+    }
+
+    if(udp) {
+        if (port > 0)
+        {
+            filter += "(udp port " + std::to_string(port) + ") or ";
+        } else {
+            filter += "udp or ";
+        }
+    }
+
+    if(icmp4) {
+        filter += "icmp or ";
+    }
+    if(icmp6)
+    {
+        filter += "icmp6 or ";
+    }
+    if(mld)
+    {
+        filter += "(icmp6 and icmp6[0] == 143) or ";
+    }
+    if(ndp)
+    {
+        filter += "(icmp6 and (icmp6[0] == 135 or icmp6[0] == 136)) or ";
+    }
+    if(igmp)
+    {
+        filter += "igmp or ";
     }
 
 
-    handler = pcap_open_live("wlp2s0", BUFSIZ, 1, 1, err);
+    if(filter.length() > 0){
+        filter = filter.substr(0, filter.length() - 4); // Deleting or a on the end of string
+    }
+
+    std::cout << filter;
+
+    //return 0;
+    handler = pcap_open_live(interface, BUFSIZ, 0, 1000, err);
     //TODO: Error handling and SIGINT handler
     pcap_compile(handler, &fp, filter.c_str(), 0, net);
 
-    pcap_lookupnet("wlp2s0", &source_ip, &netmask, errbuff);
+    pcap_lookupnet(interface, &source_ip, &netmask, errbuff);
 
     pcap_setfilter(handler, &fp);
 
-    pcap_loop(handler, 100, process_packet, nullptr);
+    pcap_loop(handler, n, process_packet, nullptr);
     pcap_close(handler);
 
     return 0;
