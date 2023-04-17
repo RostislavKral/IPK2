@@ -171,7 +171,7 @@ void getAvailableInterfaces() {
     pcap_if_t *all_devices;
 
     if (pcap_findalldevs(&all_devices, error_buffer) != 0) {
-        std::cerr << "Error finding devices: " << error_buffer << std::endl;
+        std::cerr << "Error: " << error_buffer << std::endl;
         exit(-1);
     }
 
@@ -179,7 +179,7 @@ void getAvailableInterfaces() {
         std::cout << device->name << std::endl;
     }
 
-    pcap_freealldevs(all_devices);
+    pcap_freealldevs(all_devices); // free memory
 }
 
 void usage() {
