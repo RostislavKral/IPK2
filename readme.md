@@ -8,7 +8,7 @@
 
 #### Projekt používá:
 - Překladač g++, standard C++20
-- pcap.h
+- pcap.h (-lpcap)
 - Make
 - Lze spustit pouze na linuxovém prostředí např. (Debian based, CentOS aj.)
 - Má pouze jeden soubor se zdrojovým kódem

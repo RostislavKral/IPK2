@@ -64,7 +64,7 @@ void process_packet(u_char *args, const struct pcap_pkthdr *header, const u_char
     strftime(timestamp_str, sizeof(timestamp_str), "%Y-%m-%dT%H:%M:%S.%06ldZ",
              &tm); // Converting RFC-3339 timestamp to a string
 
-    printf("timestamp: %s\n", timestamp_str);
+    std::cout << "timestamp: " << timestamp_str << std::endl;
 
     struct ether_header *ethernet_header = (struct ether_header *) packet; //Get ethernet header in order to get MAC address from both, sender and receiver
 
@@ -160,7 +160,7 @@ void process_packet(u_char *args, const struct pcap_pkthdr *header, const u_char
         }
     }
     print_packet_data(packet, header->len);
-    printf("\n");
+    std::cout << "" << std::endl;
 
 }
 
@@ -197,6 +197,7 @@ int main(int argc, char *argv[]) {
     char errbuff[PCAP_ERRBUF_SIZE];
     pcap_t *handler;
 
+    // Headers:
     bool tcp = false;
     bool udp = false;
     bool arp = false;
@@ -289,11 +290,7 @@ int main(int argc, char *argv[]) {
             return -1;
         }
 
-        if (!tcp && !udp && port > 0) {
-            usage();
-            return -1;
-        }
-        if(port <= 1){
+        if (!tcp && !udp && port != 0) {
             usage();
             return -1;
         }
