@@ -293,7 +293,10 @@ int main(int argc, char *argv[]) {
             usage();
             return -1;
         }
-
+        if(port <= 1){
+            usage();
+            return -1;
+        }
     }
 
     if(tcp) {
