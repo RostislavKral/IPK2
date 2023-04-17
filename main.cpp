@@ -1,3 +1,9 @@
+/**
+ * @Author: Rostislav Kral xkralr06
+ *
+ *
+ * */
+
 #include <iostream>
 #include <getopt.h>
 #include <pcap.h>
